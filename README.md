@@ -8,7 +8,7 @@ Frontend runtime: Node.js
 Backend: Java Spring Boot
 API: REST
 Database: PostgreSQL
-Database host: Neon
+Database host: Neon or AWS
 
 Main modules
 Backend
