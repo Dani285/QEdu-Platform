@@ -2,7 +2,7 @@ QEdu Online Learning platform
 Framework Frontend: Next.js + React, Frontend runtime: Node.js, Backend: Java Spring Boot, API: REST, Database: PostgreSQL.
 Main modules Backend, Timetable, Statistics, Database, Login, Session handling, Roles, School events, Canteen,Frontend, UI, Tests, Projects, Study materials, Meal plan, Data input, Student evaluation, Messages.
 
-License:Apache 2.0
+License:MIT
 
 AUTH
 POST   /api/auth/login
