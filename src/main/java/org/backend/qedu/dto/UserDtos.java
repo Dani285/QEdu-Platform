@@ -64,7 +64,7 @@ public class UserDtos {
         return role;
     }
     private void setRole(Roles role){
-        this.Role = role;
+        this.role = role;
     }
     private String getPassword(){
         return password;
