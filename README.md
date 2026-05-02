@@ -46,7 +46,9 @@ http://localhost:8080/api/canteen
 
 mvn spring-boot:run
 
-http://localhost:5432
+http://localhost:8080
 
-http://localhost:5432/api
+http://localhost:8080/api
+
+http://localhost:8080/api/auth/login
 
