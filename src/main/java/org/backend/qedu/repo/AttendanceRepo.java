@@ -5,7 +5,8 @@ import org.backend.qedu.model.AttendanceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-public interface AttendanceRepo extends JpaRepository<AttendanceRecords, Long>{
+
+public interface AttendanceRepo extends JpaRepository<AttendanceRecords, Long> {
 
     List<AttendanceRecords> findByStudentUsernameOrderByAttendanceDateDesc(String studentUsername);
 
@@ -13,9 +14,15 @@ public interface AttendanceRepo extends JpaRepository<AttendanceRecords, Long>{
 
     List<AttendanceRecords> findAllByOrderByAttendanceDateDesc();
 
-    long countByStudentUsernameAndStatus(String studentUsername, AttendanceStatus.Status status);
+    long countByStudentUsernameAndAttendanceStatus(
+            String studentUsername,
+            AttendanceStatus.Status attendanceStatus
+    );
 
-    long countByTeacherUsernameAndStatus(String teacherUsername, AttendanceStatus.Status status);
+    long countByTeacherUsernameAndAttendanceStatus(
+            String teacherUsername,
+            AttendanceStatus.Status attendanceStatus
+    );
 
-    long countByStatus(AttendanceStatus.Status status);
+    long countByAttendanceStatus(AttendanceStatus.Status attendanceStatus);
 }

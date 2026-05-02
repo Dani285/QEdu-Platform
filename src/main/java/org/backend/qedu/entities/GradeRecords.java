@@ -14,17 +14,28 @@ import java.time.LocalDateTime;
 public class GradeRecords {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long ID;
+
+
+    @Column(nullable = false)
     private String studentUsername;
+    @Column(nullable = false)
     private String studentName;
+    @Column(nullable = false)
     private String classGroup;
+    @Column(nullable = false)
     private String subjectName;
 
+    @Column(nullable = false)
     private Integer grade;
+    @Column(nullable = false)
     private Double weight_grades = 1.0;
+    @Column(nullable = false)
     private String notes;
+    @Column(nullable = false)
     private String teacherUsername;
+    @Column(nullable = false)
     private String teacherName;
+    @Column(nullable = false)
     private LocalDateTime createdTime;
 }

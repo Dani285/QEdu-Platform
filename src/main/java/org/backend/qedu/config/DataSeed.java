@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.backend.qedu.service.QEduService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +16,7 @@ import java.time.LocalTime;
 @RequiredArgsConstructor
 public class DataSeed {
     private final UserRepo userRepository;
-    private final TimeTableRepo timetableRepository;
+    private final TimetableRepo timetableRepository;
     private final EventRepo eventRepository;
     private final GradeRepo gradeRepository;
     private final CanteenRepo canteenRepository;
@@ -71,16 +70,23 @@ public class DataSeed {
         };
     }
 
-    private void createUser(String username, String password, String fullName, Roles roles, String classGroup) {
-        User user = new User();
+    private User createUser(String username, String password, String fullName, Roles roles, String classGroup) {
 
-        user.setUserName(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setFullName(fullName);
-        user.setRoles(roles);
-        user.setClassGroups(classGroup);
-        user.setEnabled(true);
-        userRepository.save(user);
+        return userRepository.findByUserName(username).orElseGet(() -> {
+                    User user = new User();
+
+                    user.setUserName(username);
+                    user.setPassword(passwordEncoder.encode(password));
+                    user.setFullName(fullName);
+                    user.setRoles(roles);
+                    user.setClassGroups(classGroup);
+                    user.setEnabled(true);
+                    user.setVerified(true);
+                    user.setCreatedAt(LocalDateTime.now());
+                    user.setUpdatedAt(LocalDateTime.now());
+
+                    return userRepository.save(user);
+                });
     }
 
     private void createTimetable(

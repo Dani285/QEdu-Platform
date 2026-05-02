@@ -58,16 +58,22 @@ CANTEEN\
 GET /api/auth/canteen\
 POST /api/canteen\
 \
+\
+http://localhost:8080/api/timetable\
+http://localhost:8080/api/events\
+http://localhost:8080/api/canteen\
+\
+\
 mvn spring-boot:run\
 \
-http://localhost:5400\
+http://localhost:5432\
 \
-http://localhost:5400/api\
+http://localhost:5432/api\
 \
 \
 \pard\pardeftab720\sa298\partightenfactor0
 
-\f2\b\fs36 \cf0 \outl0\strokewidth0 \strokec3 3. Frontend 
+\f2\b\fs36 \cf0 Frontend 
 \f3\fs39 .env.local
 \f2\fs36 \
 \pard\pardeftab720\sa240\partightenfactor0
@@ -76,58 +82,358 @@ http://localhost:5400/api\
 \pard\pardeftab720\partightenfactor0
 
 \f4\fs26 \cf0 \
-NEXT_PUBLIC_API_URL=http://localhost:5400/api\
+NEXT_PUBLIC_API_URL=http://localhost:5432/api\
 \pard\pardeftab720\partightenfactor0
 
+\f1\fs32 \cf2 \
+\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\fs24 \cf0 \outl0\strokewidth0 \strokec3 Your backend is running at:\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs26 \cf0 \
+http://localhost:8080\
+\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\fs24 \cf0 Your Next.js frontend runs at:\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs26 \cf0 \
+http://localhost:3000\
+\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f0\fs24 \cf0 So frontend calls backend like:\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs26 \cf0 fetch("http://localhost:8080/api/...")\
+\
+\
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080\
+\
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs24 \cf0 \strokec3 Restart Next.js \
+\
+npm run dev\
+\
+\
+Create 
+\f4\fs26 \strokec3 restApiConnection.ts\
+\
+src/lib/resApiConnection.ts
 \f1\fs32 \cf2 \outl0\strokewidth0 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \
+RestAPI connection\
 \
-NEXT_PUBLIC_API_URL=http://localhost:5400/api\
-\
-\
-\
-RestAPI connection Backend Frontend.\
-\
-restapiconnect.ts\
+\pard\pardeftab720\partightenfactor0
+
+\f4\fs26 \cf0 restApiConnection.ts
+\f1\fs32 \cf2 \
 \pard\pardeftab720\partightenfactor0
 
 \f0\fs24 \cf0 \
+const API_BASE_URL =\
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";\
 \
-const API_URL = process.env.NEXT_PUBLIC_API_URL;\
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";\
 \
-type ApiOptions = RequestInit & \{\
-  json?: unknown;\
+type ApiOptions<TBody = unknown> = \{\
+  method?: HttpMethod;\
+  body?: TBody;\
+  token?: string;\
+  username?: string;\
+  password?: string;\
+  headers?: Record<string, string>;\
 \};\
 \
-export async function apiFetch<T>(\
-  path: string,\
-  options: ApiOptions = \{\}\
-): Promise<T> \{\
-  const headers = new Headers(options.headers);\
+async function apiRequest<TResponse, TBody = unknown>(\
+  endpoint: string,\
+  options: ApiOptions<TBody> = \{\}\
+): Promise<TResponse> \{\
+  const \{\
+    method = "GET",\
+    body,\
+    token,\
+    username,\
+    password,\
+    headers = \{\},\
+  \} = options;\
 \
-  if (options.json !== undefined) \{\
-    headers.set("Content-Type", "application/json");\
+  const requestHeaders: Record<string, string> = \{\
+    "Content-Type": "application/json",\
+    ...headers,\
+  \};\
+\
+  // If later you use JWT token\
+  if (token) \{\
+    requestHeaders.Authorization = `Bearer $\{token\}`;\
   \}\
 \
-  const response = await fetch(`$\{API_URL\}$\{path\}`, \{\
-    ...options,\
-    headers,\
+  // If your Spring Security uses Basic Auth\
+  if (username && password) \{\
+    const basicToken = btoa(`$\{username\}:$\{password\}`);\
+    requestHeaders.Authorization = `Basic $\{basicToken\}`;\
+  \}\
+\
+  const response = await fetch(`$\{API_BASE_URL\}$\{endpoint\}`, \{\
+    method,\
+    headers: requestHeaders,\
+    body: body ? JSON.stringify(body) : undefined,\
     credentials: "include",\
-    body: options.json !== undefined ? JSON.stringify(options.json) : options.body,\
   \});\
 \
   if (!response.ok) \{\
-    const message = await response.text();\
-    throw new Error(message || `Request failed with status $\{response.status\}`);\
+    let errorMessage = `API error: $\{response.status\}`;\
+\
+    try \{\
+      const errorData = await response.json();\
+      errorMessage =\
+        errorData.message ||\
+        errorData.error ||\
+        errorData.detail ||\
+        errorMessage;\
+    \} catch \{\
+      // Response was not JSON\
+    \}\
+\
+    throw new Error(errorMessage);\
   \}\
 \
   if (response.status === 204) \{\
-    return null as T;\
+    return null as TResponse;\
   \}\
 \
-  return response.json();\
+  return response.json() as Promise<TResponse>;\
+\}\
+\
+export default apiRequest;\
+\
+\
+Create this file:\
+\
+src/lib/qeduApi.ts\
+\
+\
+import apiRequest from "./resApiConnection";\
+\
+export type Role = "ADMIN" | "TEACHER" | "STUDENT" | "CHEF";\
+\
+export type User = \{\
+  id?: number;\
+  userName: string;\
+  fullName: string;\
+  roles: Role;\
+  classGroups?: string;\
+  enabled?: boolean;\
+  verified?: boolean;\
+\};\
+\
+export type Timetable = \{\
+  id?: number;\
+  dayOfTheWeek: number;\
+  lessonIdx: number;\
+  classGroups: string;\
+  subjectNames: string;\
+  teacherUserName: string;\
+  teacherName: string;\
+  classRoomName: string;\
+  lessonStartsAt: string;\
+  lessonEndsAt: string;\
+\};\
+\
+export type SchoolEvent = \{\
+  id?: number;\
+  eventTitle: string;\
+  eventDescription: string;\
+  eventType: string;\
+  audience: string;\
+  location: string;\
+  eventStartTime: string;\
+  eventEndTime: string;\
+  setRelatedTimetableId?: number;\
+\};\
+\
+export type AttendanceStatus = "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";\
+\
+export type AttendanceRecord = \{\
+  id?: number;\
+  attendanceDate: string;\
+  lessonIndex: number;\
+  classGroup: string;\
+  subjectName: string;\
+  studentUsername: string;\
+  studentName: string;\
+  teacherUsername: string;\
+  teacherName: string;\
+  attendanceStatus: AttendanceStatus;\
+\};\
+\
+export type GradeRecord = \{\
+  id?: number;\
+  studentUsername: string;\
+  studentName: string;\
+  teacherUsername: string;\
+  teacherName: string;\
+  subjectName: string;\
+  classGroup: string;\
+  grade: number;\
+  weightGrades?: number;\
+  notes?: string;\
+\};\
+\
+export type CanteenMenu = \{\
+  id?: number;\
+  mainMeal: string;\
+  soup: string;\
+  secondMeal?: string;\
+  drinks?: string;\
+  deserts?: string;\
+  audience: string;\
+  amount: number;\
+  dailyMenu: string;\
+  weeklyMenu: string;\
+  chefName: string;\
+  createdByChef: string;\
+\};\
+\
+const AUTH = \{\
+  username: "admin",\
+  password: "admin123",\
+\};\
+\
+// Timetable\
+export function getTimetable() \{\
+  return apiRequest<Timetable[]>("/api/timetable", \{\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+export function createTimetable(data: Partial<Timetable>) \{\
+  return apiRequest<Timetable, Partial<Timetable>>("/api/timetable", \{\
+    method: "POST",\
+    body: data,\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+// Events\
+export function getEvents() \{\
+  return apiRequest<SchoolEvent[]>("/api/events", \{\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+export function createEvent(data: Partial<SchoolEvent>) \{\
+  return apiRequest<SchoolEvent, Partial<SchoolEvent>>("/api/events", \{\
+    method: "POST",\
+    body: data,\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+// Attendance\
+export function getAttendance() \{\
+  return apiRequest<AttendanceRecord[]>("/api/attendance", \{\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+export function createAttendance(data: Partial<AttendanceRecord>) \{\
+  return apiRequest<AttendanceRecord, Partial<AttendanceRecord>>(\
+    "/api/attendance",\
+    \{\
+      method: "POST",\
+      body: data,\
+      username: AUTH.username,\
+      password: AUTH.password,\
+    \}\
+  );\
+\}\
+\
+// Grades\
+export function getGrades() \{\
+  return apiRequest<GradeRecord[]>("/api/grades", \{\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+export function createGrade(data: Partial<GradeRecord>) \{\
+  return apiRequest<GradeRecord, Partial<GradeRecord>>("/api/grades", \{\
+    method: "POST",\
+    body: data,\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+// Canteen\
+export function getCanteenMenus() \{\
+  return apiRequest<CanteenMenu[]>("/api/canteen", \{\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
+\}\
+\
+export function createCanteenMenu(data: Partial<CanteenMenu>) \{\
+  return apiRequest<CanteenMenu, Partial<CanteenMenu>>("/api/canteen", \{\
+    method: "POST",\
+    body: data,\
+    username: AUTH.username,\
+    password: AUTH.password,\
+  \});\
 \}\
 \
 \
+Use it in Next.js page Example:\
+\
+\
+"use client";\
+\
+import \{ useEffect, useState \} from "react";\
+import \{ getTimetable, Timetable \} from "@/lib/qeduApi";\
+\
+export default function TimetablePage() \{\
+  const [timetable, setTimetable] = useState<Timetable[]>([]);\
+  const [error, setError] = useState("");\
+\
+  useEffect(() => \{\
+    getTimetable()\
+      .then(setTimetable)\
+      .catch((err) => setError(err.message));\
+  \}, []);\
+\
+  return (\
+    <main>\
+      <h1>Timetable</h1>\
+\
+      \{error && <p style=\{\{ color: "red" \}\}>\{error\}</p>\}\
+\
+      \{timetable.map((lesson) => (\
+        <div key=\{lesson.id\}>\
+          <h3>\{lesson.subjectNames\}</h3>\
+          <p>Class: \{lesson.classGroups\}</p>\
+          <p>Teacher: \{lesson.teacherName\}</p>\
+          <p>Room: \{lesson.classRoomName\}</p>\
+        </div>\
+      ))\}\
+    </main>\
+  );\
+\}\
+\
+brew install postgresql@17\
+brew services list \
+lsof -i :5432\
+createdb qedu\
 \
 \
 \
@@ -136,12 +442,6 @@ export async function apiFetch<T>(\
 \
 \
 \
-\
-\
-\pard\pardeftab720\partightenfactor0
-\cf0 \
-\pard\pardeftab720\partightenfactor0
-\cf0 \
 \
 \pard\pardeftab720\partightenfactor0
 

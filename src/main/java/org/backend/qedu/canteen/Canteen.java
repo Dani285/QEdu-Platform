@@ -27,14 +27,14 @@ public class Canteen {
     @Column(nullable = false)
     private String audience;
     @Column(nullable = false)
-    private Integer Amount;
+    private Integer amount;
     @Column(nullable = false)
     private String dailyMenu;
     @Column(nullable = false)
     private String weeklyMenu;
 
     @Column(nullable = false)
-    private String ChefName;
+    private String chefName;
 
     @Column(nullable = false)
     private String createdByChef;

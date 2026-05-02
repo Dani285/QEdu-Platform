@@ -8,10 +8,12 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+@Getter
+@Setter
 public class CanteenRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long ID;
     @NotNull LocalDate menuDateTime;
 
     @NotBlank String mainMeal;
@@ -20,7 +22,7 @@ public class CanteenRequest {
     @NotBlank String weeklyMenu;
     @NotBlank String audience;   //Students,Teachers, others
 
-    @NotNull Integer Amount;
+    @NotNull Integer amount;
 
     @NotBlank String soup;
 
@@ -31,7 +33,7 @@ public class CanteenRequest {
     @NotBlank String desserts;
 
 
-    public LocalDate getmenuDateTime(){
+    /*public LocalDate getmenuDateTime(){
         return menuDateTime;
     }
 
@@ -48,7 +50,7 @@ public class CanteenRequest {
         return audience;
     }
     public Integer getAmount(){
-        return Amount;
+        return amount;
     }
     public String getSoup(){
         return soup;
@@ -62,5 +64,5 @@ public class CanteenRequest {
     }
     public String getDesserts(){
         return desserts;
-    }
+    }*/
 }

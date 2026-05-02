@@ -31,9 +31,6 @@ public class User {
 
     private String fullName;
 
-    @Column(nullable = false)
-    private Boolean isVerified;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
 
@@ -42,6 +39,8 @@ public class User {
     private String classGroups;
 
     private boolean enabled = true;
+
+    private boolean isVerified;
 
     private LocalDateTime createdAt;
 

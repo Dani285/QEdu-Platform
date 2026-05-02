@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QEduService {
     private final UserRepo userRepository;
-    private final TimeTableRepo timetableRepository;
+    private final TimetableRepo timetableRepository;
     private final EventRepo eventRepository;
     private final GradeRepo gradeRepository;
     private final AttendanceRepo attendanceRepository;
@@ -52,10 +52,10 @@ public class QEduService {
 
         Timetable timetable = new Timetable();
         timetable.setDayOfTheWeek(request.dayOfTheWeek());
-        timetable.setLessonIdx(request.lessonInd());
+        timetable.setLessonIdx(request.lessonIdx());
         timetable.setClassGroups(request.classGroups());
         timetable.setSubjectNames(request.subjectNames());
-        timetable.setTeacherUserName(request.teacherUsername());
+        timetable.setTeacherUserName(request.teacherUserName());
         timetable.setTeacherName(request.teacherName());
         timetable.setClassRoomName(request.classRoomName());
         timetable.setLessonStartsAt(request.lessonStartsAt());
@@ -69,7 +69,7 @@ public class QEduService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid day");
         }
 
-        if (request.lessonInd() < 1 || request.lessonInd() > 10) {
+        if (request.lessonIdx() < 1 || request.lessonIdx() > 10) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid lesson number");
         }
 
@@ -77,7 +77,7 @@ public class QEduService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End time must be after start time");
         }
 
-        User teacher = userRepository.findByUserName(request.teacherUsername())
+        User teacher = userRepository.findByUserName(request.teacherUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Teacher not found"));
 
         if (teacher.getRoles() != Roles.TEACHER) {
@@ -85,17 +85,17 @@ public class QEduService {
         }
 
         if (timetableRepository.existsByDayOfWeekAndLessonIndexAndTeacherUsername(
-                request.dayOfTheWeek(), request.lessonInd(), request.teacherUsername())) {
+                request.dayOfTheWeek(), request.lessonIdx(), request.teacherUserName())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
         if (timetableRepository.existsByDayOfWeekAndLessonIndexAndClassGroup(
-                request.dayOfTheWeek(), request.lessonInd(), request.classGroups())) {
+                request.dayOfTheWeek(), request.lessonIdx(), request.classGroups())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
 
         if (timetableRepository.existsByDayOfWeekAndLessonIndexAndRoomName(
-                request.dayOfTheWeek(), request.lessonInd(), request.classRoomName())) {
+                request.dayOfTheWeek(), request.lessonIdx(), request.classRoomName())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT);
         }
     }
@@ -150,7 +150,7 @@ public class QEduService {
         records.setStudentName(request.studentName());
         records.setAttendanceStatus(request.attendanceStatus());
         records.setTeacherName(teacher.getFullName());
-        records.setCreatedByTeacher(String.valueOf(teacher.getCreatedAt()));
+        records.setTeacherUsername(teacher.getUserName());
         return attendanceRepository.save(records);
     }
 
@@ -179,8 +179,8 @@ public class QEduService {
                 Roles.STUDENT,
                 average == null ? 0.0 : average,
                 gradeRepository.countByStudentUsername(user.getUserName()),
-                attendanceRepository.countByStudentUsernameAndStatus(user.getUserName(), AttendanceStatus.Status.ABSENT),
-                attendanceRepository.countByStudentUsernameAndStatus(user.getUserName(), AttendanceStatus.Status.LATE),
+                attendanceRepository.countByStudentUsernameAndAttendanceStatus(user.getUserName(), AttendanceStatus.Status.ABSENT),
+                attendanceRepository.countByStudentUsernameAndAttendanceStatus(user.getUserName(), AttendanceStatus.Status.LATE),
                 null,
                 null,
                 null,
@@ -204,8 +204,8 @@ public class QEduService {
                 Roles.TEACHER,
                 average == null ? 0.0 : average,
                 null,
-                attendanceRepository.countByTeacherUsernameAndStatus(user.getUserName(), AttendanceStatus.Status.ABSENT),
-                attendanceRepository.countByTeacherUsernameAndStatus(user.getUserName(), AttendanceStatus.Status.LATE),
+                attendanceRepository.countByTeacherUsernameAndAttendanceStatus(user.getUserName(), AttendanceStatus.Status.ABSENT),
+                attendanceRepository.countByTeacherUsernameAndAttendanceStatus(user.getUserName(), AttendanceStatus.Status.LATE),
                 null,
                 null,
                 null,
@@ -222,8 +222,8 @@ public class QEduService {
                 Roles.ADMIN,
                 average == null ? 0.0 : average,
                 null,
-                attendanceRepository.countByStatus(AttendanceStatus.Status.ABSENT),
-                attendanceRepository.countByStatus(AttendanceStatus.Status.LATE),
+                attendanceRepository.countByAttendanceStatus(AttendanceStatus.Status.ABSENT),
+                attendanceRepository.countByAttendanceStatus(AttendanceStatus.Status.LATE),
                 userRepository.countByRoles(Roles.STUDENT),
                 userRepository.countByRoles(Roles.TEACHER),
                 userRepository.countByRoles(Roles.ADMIN),
@@ -233,7 +233,7 @@ public class QEduService {
         );
     }
     public List<Canteen> getCanteenList(){
-        return canteenRepository.findAllByOrderMenuAndDate();
+        return canteenRepository.findAllByOrderByIDDesc();
     }
     public Canteen createCanteenMenu(CanteenRequest request, User Chef){
         //check if the user is chef, only chef can manage canteen.
@@ -241,8 +241,8 @@ public class QEduService {
         if(Chef.getRoles() != Roles.CHEF){
             throw new ResponseStatusException(HttpStatus.CONFLICT,"Only Chef can manage canteen menus.");
         }
-        if(canteenRepository.existsMenuDate(request.getmenuDateTime())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"Menu already exists for this date");
+        if(canteenRepository.existsByDailyMenuAndWeeklyMenu(request.getDailyMenu(),request.getWeeklyMenu())){
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Weekly and daily menu exist already");
         }
 
         Canteen canteenMenu = new Canteen();

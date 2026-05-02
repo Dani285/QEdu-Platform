@@ -52,7 +52,6 @@ public class AuthController {
         user.setClassGroups(request.classGroup());
         user.setRoles(request.role());
         user.setEnabled(true);
-        user.setIsVerified(false);
 
         userRepo.save(user);
         return UserDto.from(user);
