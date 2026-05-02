@@ -52,7 +52,7 @@ public class UserDtos {
     private String password;
 
     @NotNull(message =  "Role is necessary")
-    private String Role;
+    private Roles role;
 
     private String getUsername(){
         return userName;
@@ -60,10 +60,10 @@ public class UserDtos {
     private void setUsername(String userName){
         this.userName = userName;
     }
-    private String getRole(){
-        return Role;
+    private Roles getRole(){
+        return role;
     }
-    private void setRole(String role){
+    private void setRole(Roles role){
         this.Role = role;
     }
     private String getPassword(){
