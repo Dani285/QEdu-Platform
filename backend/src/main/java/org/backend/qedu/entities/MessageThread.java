@@ -28,11 +28,9 @@ public class MessageThread {
     @Column(nullable = false)
     private String authorRole;
 
-    /** JSON array string, e.g. ["TEACHER","STUDENT"] or ["ALL"] */
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 1000)
     private String audienceJson;
 
-    /** JSON array of class ids/names or empty array */
     @Column(length = 1000)
     private String classTargetsJson;
 

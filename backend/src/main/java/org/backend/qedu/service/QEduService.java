@@ -787,8 +787,6 @@ public class QEduService {
         m.setTeacherUsername(teacherUsername);
     }
 
-    /* ========= Message threads ========= */
-
     public List<MessageThread> listMessageThreads(User viewer) {
         List<MessageThread> all = messageThreadRepository.findAllByOrderByCreatedAtDesc();
         if (viewer.getRoles() == Roles.ADMIN) {
@@ -860,8 +858,6 @@ public class QEduService {
         messageThreadRepository.deleteById(id);
     }
 
-    /* ========= Projects ========= */
-
     public List<QEduProject> listProjects(User viewer) {
         return switch (viewer.getRoles()) {
             case STUDENT -> {
@@ -925,7 +921,6 @@ public class QEduService {
         p.setProgress(req.progress() != null ? req.progress() : 0);
     }
 
-    /* ========= Exams / tests ========= */
 
     public List<QEduExam> listExams(User viewer) {
         return switch (viewer.getRoles()) {
@@ -976,7 +971,6 @@ public class QEduService {
         }
         qeduExamRepository.deleteById(id);
     }
-
     private static void fillExam(QEduExam e, ExamRequest req) {
         e.setTitle(req.title());
         e.setClassId(req.classId());

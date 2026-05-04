@@ -1,12 +1,12 @@
 package org.backend.qedu.config;
-import org.backend.qedu.entities.*;
-import org.backend.qedu.model.*;
-import org.backend.qedu.repo.*;
-import org.backend.qedu.canteen.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import  org.backend.qedu.entities.*;
+import  org.backend.qedu.model.*;
+import  org.backend.qedu.repo.*;
+import  org.backend.qedu.canteen.*;
+import  lombok.RequiredArgsConstructor;
+import  org.springframework.boot.CommandLineRunner;
+import  org.springframework.context.annotation.*;
+import  org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -113,7 +113,7 @@ public class DataSeed {
         idClass.setAuthorRole(Roles.TEACHER.name());
         idClass.setAudienceJson("[\"STUDENT\"]");
         idClass.setClassTargetsJson("[\"I.D\"]");
-        idClass.setCreatedAt(now.minusMinutes(5));
+        idClass.setCreatedAt(now);
         messageThreadRepository.save(idClass);
     }
 

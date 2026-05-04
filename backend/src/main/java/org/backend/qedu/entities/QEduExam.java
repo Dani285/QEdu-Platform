@@ -42,11 +42,10 @@ public class QEduExam {
     @Column(nullable = false)
     private String kind;
 
-    /** JSON: grading thresholds */
-    @Column(length = 4000)
+
+    @Column(length = 6000)
     private String gradingJson;
 
-    /** JSON: questions for online MCQ */
     @Column(length = 16000)
     private String questionsJson;
 

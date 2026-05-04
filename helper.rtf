@@ -437,6 +437,561 @@ createdb qedu\
 \
 \
 \
+DataSeed.java\
+\
+package org.backend.qedu.config;\
+import org.backend.qedu.entities.*;\
+import org.backend.qedu.model.*;\
+import org.backend.qedu.repo.*;\
+import org.backend.qedu.canteen.*;\
+import lombok.RequiredArgsConstructor;\
+import org.springframework.boot.CommandLineRunner;\
+import org.springframework.context.annotation.*;\
+import org.springframework.security.crypto.password.PasswordEncoder;\
+\
+import java.time.LocalDate;\
+import java.time.LocalDateTime;\
+import java.time.LocalTime;\
+import java.util.Objects;\
+\
+@Configuration\
+@RequiredArgsConstructor\
+public class DataSeed \{\
+    private final UserRepo userRepository;\
+    private final ClassSubjectRepo classSubjectRepository;\
+    private final TimetableRepo timetableRepository;\
+    private final EventRepo eventRepository;\
+    private final GradeRepo gradeRepository;\
+    private final CanteenRepo canteenRepository;\
+    private final AttendanceRepo attendanceRepository;\
+    private final QEduExamRepo qeduExamRepository;\
+    private final QEduProjectRepo qeduProjectRepository;\
+    private final StudyMaterialRepo studyMaterialRepository;\
+    private final MessageThreadRepo messageThreadRepository;\
+    private final StudentSubjectEnrollmentRepo studentSubjectEnrollmentRepository;\
+    private final PasswordEncoder passwordEncoder;\
+    private User admin;\
+\
+    private static final String GRADING_JSON_SAMPLE ="\{\\"minPointsFor5\\":45,\\"minPointsFor4\\":38,\\"minPointsFor3\\":30,\\"minPointsFor2\\":20\}";\
+    @Bean\
+    CommandLineRunner seedData() \{\
+        return args -> \{\
+            if (userRepository.count() > 0) \{\
+                seedClassSubjects();\
+                seedEnrollments();\
+                ensureSmithJDemoStudent();\
+                seedExamsProjectsMaterials();\
+                seedMessageThreads();\
+                return;\
+            \}\
+\
+            admin = createUser("admin", "admin31", "Administrator", Roles.ADMIN, null);\
+            createUser("millera", "miller51", "Andrew Miller", Roles.TEACHER, "I.D");\
+            createUser("brownt", "thomas12", "Thomas Brown", Roles.TEACHER, "IV.D");\
+            createUser("wrightl", "wright14", "Leslie Wright", Roles.TEACHER, "III.D");\
+            createUser("bakerb", "baker14", "Ben Baker", Roles.TEACHER, "II.D");\
+            createUser("cartera", "carter21", "Adam Carter", Roles.STUDENT, "I.D");\
+            createUser("smithj", "smith31", "John Smith", Roles.STUDENT, "I.D");\
+            createUser("violetc", "violet43", "Christian Violet", Roles.STUDENT, "IV.D");\
+            createUser("masont", "mason52", "Thomas Mason", Roles.STUDENT, "II.D");\
+            createUser("bakerbr", "baker92", "Brandon Baker", Roles.STUDENT, "III.D");\
+            createUser("browna", "brown22", "Adam Brown", Roles.STUDENT, "II.D");\
+            createUser("chefp", "peterchef89", "Peter Grant", Roles.CHEF, null);\
+\
+            createTimetable(1, 1, "I.D", "Programming", "millera", "Andrew Miller", "G-210", "08:50", "09:35");\
+            createTimetable(1, 1, "IV.D", "Programming", "brownt", "Thomas Brown", "G-210", "08:00", "08:45");\
+            createTimetable(4, 5, "III.D", "Data Structures", "wrightl", "Leslie Wright", "K-101", "10:30", "11:15");\
+            createTimetable(5, 6, "II.D", "Programming", "bakerb", "Ben Baker", "DP005", "12:15", "13:00");\
+\
+            createAttendance("cartera", "Adam Carter", "I.D", "Programming", AttendanceStatus.Status.PRESENT, "millera", "Andrew Miller", "Andrew Miller");\
+            createAttendance("violetc", "Christian Violet", "IV.D", "Programming", AttendanceStatus.Status.LATE, "brownt", "Thomas Brown", "Thomas Brown");\
+            createAttendance("masont", "Thomas Mason", "II.D", "Data Structures", AttendanceStatus.Status.ABSENT, "bakerb", "Ben Baker", "Ben Baker");\
+            createAttendance("bakerbr", "Brandon Baker", "III.D", "Mathematics", AttendanceStatus.Status.EXCUSED, "wrightl", "Leslie Wright", "Leslie Wright");\
+            createAttendance("browna", "Adam Brown", "II.D", "Data Structures", AttendanceStatus.Status.PRESENT, "bakerb", "Ben Baker", "Ben Baker");\
+\
+            createGrade("cartera", "Adam Carter", "I.D", "Programming", 1, "Excellent", "millera","Andrew Miller",LocalDateTime.now());\
+            createGrade("violetc", "Christian Violet", "IV.D", "Programming", 2, "Commendable", "brownt","Thomas Brown",LocalDateTime.now());\
+            createGrade("masont", "Thomas Mason", "II.D", "Data Structures", 3, "Average", "bakerb","Ben Baker",LocalDateTime.now());\
+            createGrade("bakerbr", "Brandon Baker", "III.D", "Mathematics", 3, "Average", "wrightl","Leslie Wright",LocalDateTime.now());\
+            createGrade("browna", "Adam Brown", "II.D", "Data Structures", 4, "Satisfactory", "bakerb","Ben Baker",LocalDateTime.now());\
+\
+            createEvent("Substitution", "Substitution", "Substitution for teachers", "ALL",admin.getFullName());\
+            createEvent("Field trip", "Field trip", "One-day field trip", "ALL", admin.getFullName());\
+            createEvent("School breaks","School break","School break at school","ALL", admin.getFullName());\
+            createEvent("Substitution","Substitution","Substitution in the timetable","ALL",admin.getFullName());\
+\
+            createCanteenMenu("ALL","Peter Grant","Chicken with rice","Pork with compote","Soup","Second course","Tomato soup","Coca-Cola","Tiramisu",1,"Peter Grant");\
+            createCanteenMenu("ALL","Peter Grant","Cordon bleu","Saucy meat","Soup","Second course","Dumpling soup","Sprite","Dumplings",2,"Peter Grant");\
+            createCanteenMenu("ALL","Peter Grant","Grilled cheese","Grilled fish","Soup","Second course","Meat soup","Light Cola","Cheesecake",1,"Peter Grant");\
+\
+            seedClassSubjects();\
+            seedEnrollments();\
+            seedExamsProjectsMaterials();\
+            seedMessageThreads();\
+        \};\
+    \}\
+\
+    private void seedMessageThreads() \{\
+        if (messageThreadRepository.count() > 0) \{\
+            return;\
+        \}\
+        LocalDateTime now = LocalDateTime.now();\
+\
+        MessageThread all = new MessageThread();\
+        all.setTitle("School announcement");\
+        all.setLastMessage("Hi everyone - test message on the new interface.");\
+        all.setAuthorUsername("admin");\
+        all.setAuthorRole(Roles.ADMIN.name());\
+        all.setAudienceJson("[\\"ALL\\"]");\
+        all.setClassTargetsJson("[]");\
+        all.setCreatedAt(now);\
+        messageThreadRepository.save(all);\
+\
+        MessageThread idClass = new MessageThread();\
+        idClass.setTitle("I.D - Programming reminder");\
+        idClass.setLastMessage("Please review the uploaded study material.");\
+        idClass.setAuthorUsername("millera");\
+        idClass.setAuthorRole(Roles.TEACHER.name());\
+        idClass.setAudienceJson("[\\"STUDENT\\"]");\
+        idClass.setClassTargetsJson("[\\"I.D\\"]");\
+        idClass.setCreatedAt(now.minusMinutes(5));\
+        messageThreadRepository.save(idClass);\
+    \}\
+\
+    private void seedExamsProjectsMaterials() \{\
+        LocalDate today = LocalDate.now();\
+        LocalDateTime now = LocalDateTime.now();\
+\
+        if (qeduExamRepository.count() == 0) \{\
+            saveExam(\
+                    "Chapter 1 - unit test (Programming)",\
+                    "I.D",\
+                    "I.D",\
+                    "prog",\
+                    "Programming",\
+                    50,\
+                    today.plusDays(7),\
+                    "scheduled",\
+                    "manual",\
+                    GRADING_JSON_SAMPLE,\
+                    null,\
+                    "millera"\
+            );\
+            saveExam(\
+                    "Data Structures quiz",\
+                    "II.D",\
+                    "II.D",\
+                    "adt",\
+                    "Data Structures",\
+                    40,\
+                    today.plusDays(2),\
+                    "closed",\
+                    "manual",\
+                    GRADING_JSON_SAMPLE,\
+                    null,\
+                    "bakerb"\
+            );\
+        \}\
+\
+        if (qeduProjectRepository.count() == 0) \{\
+            saveProject(\
+                    "Mini project - application outline",\
+                    "Create an outline of the learned patterns (min. 1 page).",\
+                    "I.D",\
+                    "I.D",\
+                    "prog",\
+                    "Programming",\
+                    "active",\
+                    today,\
+                    today.plusWeeks(2),\
+                    35,\
+                    "millera",\
+                    now\
+            );\
+            saveProject(\
+                    "Data Structures practice task",\
+                    "Implement a simple list and traversal.",\
+                    "II.D",\
+                    "II.D",\
+                    "adt",\
+                    "Data Structures",\
+                    "planned",\
+                    today.plusDays(1),\
+                    today.plusWeeks(3),\
+                    0,\
+                    "bakerb",\
+                    now\
+            );\
+        \}\
+\
+        if (studyMaterialRepository.count() == 0) \{\
+            saveStudyMaterial(\
+                    "01 Introduction - notes",\
+                    "I.D",\
+                    "I.D",\
+                    "prog",\
+                    "Programming",\
+                    "document",\
+                    "active",\
+                    today,\
+                    today.plusMonths(2),\
+                    "millera",\
+                    now\
+            );\
+            saveStudyMaterial(\
+                    "Linked lists - presentation",\
+                    "II.D",\
+                    "II.D",\
+                    "adt",\
+                    "Data Structures",\
+                    "presentation",\
+                    "active",\
+                    today,\
+                    today.plusMonths(1),\
+                    "bakerb",\
+                    now\
+            );\
+        \}\
+    \}\
+\
+    private void saveExam(\
+            String title,\
+            String classId,\
+            String className,\
+            String subjectId,\
+            String subjectName,\
+            int maxPoints,\
+            LocalDate examDate,\
+            String status,\
+            String kind,\
+            String gradingJson,\
+            String questionsJson,\
+            String teacherUsername\
+    ) \{\
+        QEduExam e = new QEduExam();\
+        e.setTitle(title);\
+        e.setClassId(classId);\
+        e.setClassName(className);\
+        e.setSubjectId(subjectId);\
+        e.setSubjectName(subjectName);\
+        e.setMaxPoints(maxPoints);\
+        e.setExamDate(examDate);\
+        e.setStatus(status);\
+        e.setKind(kind);\
+        e.setGradingJson(gradingJson);\
+        e.setQuestionsJson(questionsJson);\
+        e.setTeacherUsername(teacherUsername);\
+        qeduExamRepository.save(e);\
+    \}\
+\
+    private void saveProject(\
+            String title,\
+            String description,\
+            String classId,\
+            String className,\
+            String subjectId,\
+            String subjectName,\
+            String status,\
+            LocalDate startsAt,\
+            LocalDate deadline,\
+            int progress,\
+            String teacherUsername,\
+            LocalDateTime updatedAt\
+    ) \{\
+        QEduProject p = new QEduProject();\
+        p.setTitle(title);\
+        p.setDescription(description);\
+        p.setClassId(classId);\
+        p.setClassName(className);\
+        p.setSubjectId(subjectId);\
+        p.setSubjectName(subjectName);\
+        p.setStatus(status);\
+        p.setStartsAt(startsAt);\
+        p.setDeadline(deadline);\
+        p.setProgress(progress);\
+        p.setTeacherUsername(teacherUsername);\
+        p.setUpdatedAt(updatedAt);\
+        qeduProjectRepository.save(p);\
+    \}\
+\
+    private void saveStudyMaterial(\
+            String title,\
+            String classId,\
+            String className,\
+            String subjectId,\
+            String subjectName,\
+            String materialType,\
+            String status,\
+            LocalDate validFrom,\
+            LocalDate validTo,\
+            String teacherUsername,\
+            LocalDateTime updatedAt\
+    ) \{\
+        StudyMaterial m = new StudyMaterial();\
+        m.setTitle(title);\
+        m.setClassId(classId);\
+        m.setClassName(className);\
+        m.setSubjectId(subjectId);\
+        m.setSubjectName(subjectName);\
+        m.setMaterialType(materialType);\
+        m.setStatus(status);\
+        m.setValidFrom(validFrom);\
+        m.setValidTo(validTo);\
+        m.setTeacherUsername(teacherUsername);\
+        m.setUpdatedAt(updatedAt);\
+        studyMaterialRepository.save(m);\
+    \}\
+\
+    private void seedClassSubjects() \{\
+        if (classSubjectRepository.count() > 0) \{\
+            return;\
+        \}\
+        saveClassSubject("cid-id", "I.D", "prog", "Programming", "millera", "Andrew Miller");\
+        saveClassSubject("cid-ivd", "IV.D", "prog", "Programming", "brownt", "Thomas Brown");\
+        saveClassSubject("cid-iiid", "III.D", "math", "Mathematics", "wrightl", "Leslie Wright");\
+        saveClassSubject("cid-iid", "II.D", "adt", "Data Structures", "bakerb", "Ben Baker");\
+        \
+        saveClassSubject("cid-iidprog", "II.D", "prog", "Programming", "bakerb", "Ben Baker");\
+    \}\
+\
+\
+    private void seedEnrollments() \{\
+        if (studentSubjectEnrollmentRepository.count() > 0 || classSubjectRepository.count() == 0) \{\
+            return;\
+        \}\
+        for (ClassSubjectAssignment a : classSubjectRepository.findAll()) \{\
+            for (User u : userRepository.findByRolesAndClassGroups(Roles.STUDENT, a.getClassName())) \{\
+                StudentSubjectEnrollment e = new StudentSubjectEnrollment();\
+                e.setStudent(u);\
+                e.setClassSubject(a);\
+                studentSubjectEnrollmentRepository.save(e);\
+            \}\
+        \}\
+    \}\
+\
+    private void ensureSmithJDemoStudent() \{\
+        User u = userRepository.findByUserName("smithj").orElseGet(() ->\
+                createUser("smithj", "smith31", "John Smith", Roles.STUDENT, "I.D"));\
+        if (!u.isEnabled()) \{\
+            u.setEnabled(true);\
+            userRepository.save(u);\
+        \}\
+        if (u.getRoles() != Roles.STUDENT || u.getClassGroups() == null || u.getClassGroups().isBlank()) \{\
+            return;\
+        \}\
+        for (ClassSubjectAssignment a : classSubjectRepository.findAllByOrderByClassIdAscSubjectNameAsc()) \{\
+            if (!Objects.equals(a.getClassName(), u.getClassGroups())) \{\
+                continue;\
+            \}\
+            if (!studentSubjectEnrollmentRepository.existsByClassSubject_IdAndStudent_ID(a.getId(), u.getID())) \{\
+                StudentSubjectEnrollment e = new StudentSubjectEnrollment();\
+                e.setStudent(u);\
+                e.setClassSubject(a);\
+                studentSubjectEnrollmentRepository.save(e);\
+            \}\
+        \}\
+    \}\
+    \
+    private void saveClassSubject(\
+            String classId,\
+            String className,\
+            String subjectId,\
+            String subjectName,\
+            String teacherUsername,\
+            String teacherName\
+    ) \{\
+        ClassSubjectAssignment a = new ClassSubjectAssignment();\
+        a.setClassId(classId);\
+        a.setClassName(className);\
+        a.setSubjectId(subjectId);\
+        a.setSubjectName(subjectName);\
+        a.setTeacherUsername(teacherUsername);\
+        a.setTeacherName(teacherName);\
+        classSubjectRepository.save(a);\
+    \}\
+\
+    private User createUser(String username, String password, String fullName, Roles roles, String classGroup) \{\
+\
+        return userRepository.findByUserName(username).orElseGet(() -> \{\
+                    User user = new User();\
+\
+                    user.setUserName(username);\
+                    user.setPassword(passwordEncoder.encode(password));\
+                    user.setFullName(fullName);\
+                    user.setRoles(roles);\
+                    user.setClassGroups(classGroup);\
+                    user.setEnabled(true);\
+                    user.setVerified(true);\
+                    user.setCreatedAt(LocalDateTime.now());\
+                    user.setUpdatedAt(LocalDateTime.now());\
+\
+                    return userRepository.save(user);\
+                \});\
+    \}\
+\
+    private void createTimetable(\
+            Integer day,\
+            Integer lesson,\
+            String classGroup,\
+            String subject,\
+            String teacherUsername,\
+            String teacherName,\
+            String room,\
+            String start,\
+            String end\
+    ) \{\
+        Timetable timetable = new Timetable();\
+\
+        timetable.setDayOfTheWeek(day);\
+        timetable.setLessonIdx(lesson);\
+        timetable.setClassGroups(classGroup);\
+        timetable.setSubjectNames(subject);\
+        timetable.setTeacherUserName(teacherUsername);\
+        timetable.setTeacherName(teacherName);\
+        timetable.setClassRoomName(room);\
+        timetable.setLessonStartsAt(LocalTime.parse(start));\
+        timetable.setLessonEndsAt(LocalTime.parse(end));\
+\
+        timetableRepository.save(timetable);\
+    \}\
+\
+    private void createGrade(\
+            String studentUsername,\
+            String studentName,\
+            String classGroup,\
+            String subject,\
+            Integer grades,\
+            String note,\
+            String teacherUsername,\
+            String teacherName,\
+            LocalDateTime createdDateTime\
+    ) \{\
+        GradeRecords grade = new GradeRecords();\
+\
+        grade.setStudentUsername(studentUsername);\
+        grade.setStudentName(studentName);\
+        grade.setClassGroup(classGroup);\
+        grade.setSubjectName(subject);\
+        grade.setGrade(grades);\
+        grade.setWeight_grades(1.0);\
+        grade.setNotes(note);\
+        grade.setTeacherUsername(teacherUsername);\
+        grade.setTeacherName(teacherName);\
+        grade.setCreatedTime(createdDateTime);\
+\
+        gradeRepository.save(grade);\
+    \}\
+\
+    private void createAttendance(\
+            String studentUsername,\
+            String studentName,\
+            String classGroup,\
+            String subject,\
+            AttendanceStatus.Status status,\
+            String teacherUsername,\
+            String teacherName,\
+            String createdByTeacher\
+    ) \{\
+        AttendanceRecords records = new AttendanceRecords();\
+\
+        records.setAttendanceDate(LocalDate.now());\
+        records.setLessonIndex(1);\
+        records.setClassGroup(classGroup);\
+        records.setSubjectName(subject);\
+        records.setStudentUsername(studentUsername);\
+        records.setStudentName(studentName);\
+        records.setAttendanceStatus(status);\
+        records.setTeacherUsername(teacherUsername);\
+        records.setTeacherName(teacherName);\
+        records.setCreatedByTeacher(createdByTeacher);\
+\
+        attendanceRepository.save(records);\
+    \}\
+\
+    private void createEvent(String type, String title, String description, String audience, String admin) \{\
+        SchoolEvents events = new SchoolEvents();\
+\
+        events.setEventType(type);\
+        events.setEventTitle(title);\
+        events.setEventDescription(description);\
+        events.setEventStartTime(LocalDateTime.now().plusDays(1));\
+        events.setEventEndTime(LocalDateTime.now().plusDays(1).plusHours(1));\
+        events.setLocation("J.Selye University");\
+        events.setAudience(audience);\
+        events.setCreatedByUser(admin);\
+        events.setSetRelatedTimetableId(0L);\
+\
+        eventRepository.save(events);\
+    \}\
+    private void createCanteenMenu(String audience, String ChefName, String dailyMenu,String weeklyMenu, String mainMeal, String secondMeal, String soup, String drinks, String deserts, Integer amount,String createdByChef)\{\
+       Canteen canteenMenu = new Canteen();\
+\
+       canteenMenu.setAudience(audience);\
+       canteenMenu.setChefName(ChefName);\
+       canteenMenu.setDailyMenu(dailyMenu);\
+       canteenMenu.setWeeklyMenu(weeklyMenu);\
+       canteenMenu.setMainMeal(mainMeal);\
+       canteenMenu.setSecondMeal(secondMeal);\
+       canteenMenu.setSoup(soup);\
+       canteenMenu.setDrinks(drinks);\
+       canteenMenu.setDeserts(deserts);\
+       canteenMenu.setAmount(amount);\
+       canteenMenu.setCreatedByChef(createdByChef);\
+\
+       canteenRepository.save(canteenMenu);\
+    \}\
+\}\
+\
+\
+QEduService.java\
+\
+case TEACHER -> \{\
+    /* If class + subject are present: all grades for that context (not only the teacher's own teacherUsername). */\
+    if (classGroup != null && subjectName != null) \{\
+        if (!teacherTeachesClassSubject(viewer.getUserName(), classGroup, subjectName)) \{\
+            yield List.of();\
+        \}\
+        List<GradeRecords> forClassSubject = gradeRepository.findForClassGroupAndSubject(classGroup, subjectName).stream()\
+                .filter(g -> studentUsername == null || Objects.equals(g.getStudentUsername(), studentUsername))\
+                .toList();\
+        Optional<ClassSubjectAssignment> assignment = classSubjectRepository.findForTeacherClassAndSubject(\
+                viewer.getUserName(), classGroup, subjectName);\
+        List<GradeRecords> scoped = forClassSubject;\
+        if (assignment.isPresent()) \{\
+            Set<String> allowedUsernames = new HashSet<>(\
+                    enrollmentRepository.findStudentUsernamesByClassSubjectId(assignment.get().getId()));\
+            scoped = forClassSubject.stream()\
+                    .filter(g -> allowedUsernames.contains(g.getStudentUsername()))\
+                    .toList();\
+        \}\
+        yield scoped.stream().map(GradeResponse::from).toList();\
+    \}\
+    yield gradeRepository.findByTeacherUsernameOrderByCreatedTimeDesc(viewer.getUserName()).stream()\
+        .filter(g -> classGroup == null || Objects.equals(g.getClassGroup(), classGroup))\
+        .filter(g -> subjectName == null || g.getSubjectName().equalsIgnoreCase(subjectName))\
+        .filter(g -> studentUsername == null || Objects.equals(g.getStudentUsername(), studentUsername))\
+        .map(GradeResponse::from)\
+        .toList();\
+\}\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 \
 \
 \

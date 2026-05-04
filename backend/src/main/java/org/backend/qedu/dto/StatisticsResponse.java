@@ -10,7 +10,7 @@ public record StatisticsResponse(
         Long totalStudents,
         Long totalTeachers,
         Long totalAdmins,
-        Long taughtclasses,
+        Long taughtClasses,
         Long lessons,
         Long upcomingEvents
 ) {}
