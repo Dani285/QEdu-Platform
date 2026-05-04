@@ -11,16 +11,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @Service
@@ -32,28 +29,10 @@ public class AuthController {
     private final SecurityContextRepository securityContextRepository;
     private final UserRepo userRepo;
     private final QEduService qEduService;
-    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/register")
-    public UserDto register(@Valid @RequestBody RegisterRequest request){
-
-        //filter if there's a userName in userRepo
-
-        if(userRepo.findByUserName(request.userName()).isPresent()){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"UserName already exist");
-        }
-
-        User user = new User();
-
-        user.setUserName(request.userName());
-        user.setPassword(passwordEncoder.encode(request.Password()));
-        user.setFullName(request.fullName());
-        user.setClassGroups(request.classGroup());
-        user.setRoles(request.role());
-        user.setEnabled(true);
-
-        userRepo.save(user);
-        return UserDto.from(user);
+    public UserDto register(@Valid @RequestBody RegisterRequest request) {
+        return qEduService.registerNewUser(request);
     }
 
     @PostMapping("/login")

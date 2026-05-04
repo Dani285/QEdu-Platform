@@ -4,7 +4,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.backend.qedu.entities.User;
+import org.backend.qedu.model.AttendanceStatus;
 import org.backend.qedu.model.Roles;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class UserDtos {
     public UserDtos(){
@@ -25,14 +29,16 @@ public class UserDtos {
                           String userName,
                           String fullName,
                           Roles role,
-                          String classGroup){
+                          String classGroup,
+                          boolean enabled){
         public static UserDto from(User user){
           return new UserDto(
                   user.getID(),
                   user.getUserName(),
                   user.getFullName(),
                   user.getRoles(),
-                  user.getClassGroups()
+                  user.getClassGroups(),
+                  user.isEnabled()
           );
         };
     }

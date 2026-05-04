@@ -1,5 +1,4 @@
 package org.backend.qedu.canteen;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

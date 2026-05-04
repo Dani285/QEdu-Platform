@@ -4,6 +4,5 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record EnrollmentStudentIdsRequest(
-        @NotNull List<Long> studentUserIds) {
+public record EnrollmentStudentIdsRequest(@NotNull List<Long> studentUserIds) {
 }

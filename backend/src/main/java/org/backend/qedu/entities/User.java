@@ -1,5 +1,6 @@
 package org.backend.qedu.entities;
-import org.backend.qedu.model.Roles;
+import lombok.Builder;
+import  org.backend.qedu.model.Roles;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

@@ -2,7 +2,8 @@ package org.backend.qedu.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.backend.qedu.dto.UserDtos;
+import org.backend.qedu.dto.UserDtos.RegisterRequest;
+import org.backend.qedu.dto.UserDtos.UserDto;
 import org.backend.qedu.dto.UserPatchRequest;
 import org.backend.qedu.service.QEduService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,25 +21,25 @@ public class UserAdminController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public UserDtos.UserDto create(@Valid @RequestBody UserDtos.RegisterRequest request) {
+    public UserDto create(@Valid @RequestBody RegisterRequest request) {
         return qEduService.registerNewUser(request);
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserDtos.UserDto> list() {
+    public List<UserDto> list() {
         return qEduService.listAllUsers();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public UserDtos.UserDto getOne(@PathVariable Long id) {
+    public UserDto getOne(@PathVariable Long id) {
         return qEduService.getUserById(id);
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public UserDtos.UserDto patch(@PathVariable Long id, @Valid @RequestBody UserPatchRequest request) {
+    public UserDto patch(@PathVariable Long id, @Valid @RequestBody UserPatchRequest request) {
         return qEduService.patchUser(id, request);
     }
 

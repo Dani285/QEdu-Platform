@@ -15,6 +15,9 @@ public interface GradeRepo extends JpaRepository<GradeRecords, Long>{
     @Query("select avg(g.grade) from GradeRecords g where g.teacherUsername = :username")
     Double averageForTeacher(String username);
 
+    @Query("select avg(g.grade) from GradeRecords g")
+    Double averageForSchool();
+
     List<GradeRecords> findByStudentUsernameOrderByCreatedTimeDesc(String studentUsername);
 
     List<GradeRecords> findByTeacherUsernameOrderByCreatedTimeDesc(String teacherUsername);
@@ -26,6 +29,4 @@ public interface GradeRepo extends JpaRepository<GradeRecords, Long>{
             @Param("cg") String classGroup,
             @Param("sn") String subjectName
     );
-    @Query("select avg(g.grade) from GradeRecords g")
-    Double averageForSchool();
 }

@@ -1,4 +1,4 @@
-package org.qedu;
+package org.backend.qedu;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

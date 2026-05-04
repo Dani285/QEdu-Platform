@@ -1,6 +1,7 @@
 package org.backend.qedu.controllers;
 import org.backend.qedu.canteen.Canteen;
 import org.backend.qedu.canteen.CanteenRequest;
+import org.backend.qedu.dto.AttendanceRequest;
 import org.backend.qedu.dto.EventRequest;
 import org.backend.qedu.dto.StatisticsResponse;
 import org.backend.qedu.dto.TimeTableRequest;
@@ -9,7 +10,6 @@ import org.backend.qedu.entities.SchoolEvents;
 import org.backend.qedu.entities.Timetable;
 import org.backend.qedu.model.AttendanceStatus;
 import org.backend.qedu.service.QEduService;
-import org.backend.qedu.dto.AttendanceRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,6 +77,12 @@ public class QEduController {
             return qEduService.updateAttendance(id, status);
         }
 
+        @DeleteMapping("/api/attendance/{id}")
+        @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+        public void deleteAttendance(@PathVariable Long id, Authentication authentication) {
+            qEduService.deleteAttendance(qEduService.currentUser(authentication), id);
+        }
+
         @GetMapping("/api/statistics")
         public StatisticsResponse statistics(Authentication authentication) {
             return qEduService.getStatistics(qEduService.currentUser(authentication));
@@ -91,7 +97,7 @@ public class QEduController {
         public Canteen createCanteenMenu(@Valid @RequestBody CanteenRequest request, Authentication authentication){
             return qEduService.createCanteenMenu(request,qEduService.currentUser(authentication));
         }
-        @DeleteMapping("api/canteen/{id}")
+        @DeleteMapping("/api/canteen/{id}")
         @PreAuthorize("hasRole('CHEF')")
         public void DeleteCanteenMenu(@PathVariable Long id, Authentication authentication){
             qEduService.DeleteCanteenMenu(id,qEduService.currentUser(authentication));

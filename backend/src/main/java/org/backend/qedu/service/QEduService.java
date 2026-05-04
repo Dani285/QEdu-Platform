@@ -2,8 +2,6 @@ package org.backend.qedu.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.backend.qedu.canteen.Canteen;
-import org.backend.qedu.canteen.CanteenRequest;
-import org.backend.qedu.dto.*;
 import org.backend.qedu.dto.AttendanceRequest;
 import org.backend.qedu.dto.ClassSubjectRequest;
 import org.backend.qedu.dto.ClassSubjectResponse;
@@ -17,15 +15,15 @@ import org.backend.qedu.dto.ProjectRequest;
 import org.backend.qedu.dto.StatisticsResponse;
 import org.backend.qedu.dto.StudyMaterialRequest;
 import org.backend.qedu.dto.TimeTableRequest;
+import org.backend.qedu.dto.UserDtos.RegisterRequest;
+import org.backend.qedu.dto.UserDtos.UserDto;
 import org.backend.qedu.dto.UserPatchRequest;
 import org.backend.qedu.entities.*;
 import org.backend.qedu.model.AttendanceStatus;
 import org.backend.qedu.model.Roles;
+import org.backend.qedu.canteen.CanteenRequest;
 import org.backend.qedu.repo.*;
 import lombok.RequiredArgsConstructor;
-import org.backend.qedu.dto.*;
-import org.backend.qedu.entities.*;
-import org.backend.qedu.repo.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -331,7 +329,7 @@ public class QEduService {
 
     /* ========= Users (admin) ========= */
 
-    public UserDtos.UserDto registerNewUser(UserDtos.RegisterRequest request) {
+    public UserDto registerNewUser(RegisterRequest request) {
         if (userRepository.findByUserName(request.userName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "UserName already exist");
         }
@@ -344,20 +342,20 @@ public class QEduService {
         user.setEnabled(true);
         userRepository.save(user);
         enrollNewStudentInClassAssignments(user);
-        return UserDtos.UserDto.from(user);
+        return UserDto.from(user);
     }
 
-    public List<UserDtos.UserDto> listAllUsers() {
-        return userRepository.findAll().stream().map(UserDtos.UserDto::from).toList();
+    public List<UserDto> listAllUsers() {
+        return userRepository.findAll().stream().map(UserDto::from).toList();
     }
 
-    public UserDtos.UserDto getUserById(Long id) {
+    public UserDto getUserById(Long id) {
         User u = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return UserDtos.UserDto.from(u);
+        return UserDto.from(u);
     }
 
     @Transactional
-    public UserDtos.UserDto patchUser(Long id, UserPatchRequest req) {
+    public UserDto patchUser(Long id, UserPatchRequest req) {
         User u = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         Roles oldRole = u.getRoles();
         String oldClass = u.getClassGroups();
@@ -400,7 +398,7 @@ public class QEduService {
             }
         }
 
-        return UserDtos.UserDto.from(saved);
+        return UserDto.from(saved);
     }
 
     @Transactional
@@ -449,11 +447,11 @@ public class QEduService {
                     yield scoped.stream().map(GradeResponse::from).toList();
                 }
                 yield gradeRepository.findByTeacherUsernameOrderByCreatedTimeDesc(viewer.getUserName()).stream()
-                        .filter(g -> classGroup == null || Objects.equals(g.getClassGroup(), classGroup))
-                        .filter(g -> subjectName == null || g.getSubjectName().equalsIgnoreCase(subjectName))
-                        .filter(g -> studentUsername == null || Objects.equals(g.getStudentUsername(), studentUsername))
-                        .map(GradeResponse::from)
-                        .toList();
+                    .filter(g -> classGroup == null || Objects.equals(g.getClassGroup(), classGroup))
+                    .filter(g -> subjectName == null || g.getSubjectName().equalsIgnoreCase(subjectName))
+                    .filter(g -> studentUsername == null || Objects.equals(g.getStudentUsername(), studentUsername))
+                    .map(GradeResponse::from)
+                    .toList();
             }
             case ADMIN -> gradeRepository.findAllByOrderByCreatedTimeDesc().stream()
                     .filter(g -> classGroup == null || Objects.equals(g.getClassGroup(), classGroup))
@@ -545,7 +543,7 @@ public class QEduService {
                 .toList();
     }
 
-    public List<UserDtos.UserDto> listStudentsForDirectory(User viewer, String classId, String subjectId) {
+    public List<UserDto> listStudentsForDirectory(User viewer, String classId, String subjectId) {
         if (classId != null && !classId.isBlank() && subjectId != null && !subjectId.isBlank()) {
             ClassSubjectAssignment a = classSubjectRepository.findByClassIdAndSubjectId(classId, subjectId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class-subject assignment not found"));
@@ -562,17 +560,17 @@ public class QEduService {
             }
             return userRepository.findAllById(ids).stream()
                     .filter(u -> u.getRoles() == Roles.STUDENT)
-                    .map(UserDtos.UserDto::from)
-                    .sorted(Comparator.comparing(UserDtos.UserDto::fullName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                    .map(UserDto::from)
+                    .sorted(Comparator.comparing(UserDto::fullName, Comparator.nullsLast(String::compareToIgnoreCase)))
                     .toList();
         }
         return listStudentsForDirectoryUnscoped(viewer);
     }
 
-    private List<UserDtos.UserDto> listStudentsForDirectoryUnscoped(User viewer) {
+    private List<UserDto> listStudentsForDirectoryUnscoped(User viewer) {
         return switch (viewer.getRoles()) {
             case ADMIN -> userRepository.findByRoles(Roles.STUDENT).stream()
-                    .map(UserDtos.UserDto::from)
+                    .map(UserDto::from)
                     .toList();
             case TEACHER -> {
                 Set<String> classNames = classSubjectRepository
@@ -582,7 +580,7 @@ public class QEduService {
                         .collect(Collectors.toSet());
                 yield userRepository.findByRoles(Roles.STUDENT).stream()
                         .filter(u -> u.getClassGroups() != null && classNames.contains(u.getClassGroups()))
-                        .map(UserDtos.UserDto::from)
+                        .map(UserDto::from)
                         .toList();
             }
             case STUDENT -> {
@@ -591,7 +589,7 @@ public class QEduService {
                     yield List.of();
                 }
                 yield userRepository.findByRolesAndClassGroups(Roles.STUDENT, cg).stream()
-                        .map(UserDtos.UserDto::from)
+                        .map(UserDto::from)
                         .toList();
             }
             case CHEF -> List.of();
@@ -646,7 +644,7 @@ public class QEduService {
         classSubjectRepository.deleteById(id);
     }
 
-    public List<UserDtos.UserDto> listEnrolledStudents(Long classSubjectId, User viewer) {
+    public List<UserDto> listEnrolledStudents(Long classSubjectId, User viewer) {
         ClassSubjectAssignment a = classSubjectRepository.findById(classSubjectId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (viewer.getRoles() == Roles.TEACHER) {
@@ -662,8 +660,8 @@ public class QEduService {
         }
         return userRepository.findAllById(ids).stream()
                 .filter(u -> u.getRoles() == Roles.STUDENT)
-                .map(UserDtos.UserDto::from)
-                .sorted(Comparator.comparing(UserDtos.UserDto::fullName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .map(UserDto::from)
+                .sorted(Comparator.comparing(UserDto::fullName, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .toList();
     }
 
@@ -732,6 +730,8 @@ public class QEduService {
         }
     }
 
+    /* ========= Study materials ========= */
+
     public List<StudyMaterial> listMaterials(User viewer) {
         return switch (viewer.getRoles()) {
             case STUDENT -> {
@@ -793,6 +793,8 @@ public class QEduService {
         m.setValidTo(req.validTo());
         m.setTeacherUsername(teacherUsername);
     }
+
+    /* ========= Message threads ========= */
 
     public List<MessageThread> listMessageThreads(User viewer) {
         List<MessageThread> all = messageThreadRepository.findAllByOrderByCreatedAtDesc();
@@ -930,6 +932,7 @@ public class QEduService {
         p.setProgress(req.progress() != null ? req.progress() : 0);
     }
 
+    /* ========= Exams / tests ========= */
 
     public List<QEduExam> listExams(User viewer) {
         return switch (viewer.getRoles()) {
@@ -995,4 +998,3 @@ public class QEduService {
         e.setQuestionsJson(req.questionsJson());
     }
 }
-

@@ -2,11 +2,11 @@ package org.backend.qedu.controllers;
 
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import org.backend.qedu.dto.ClassSubjectRequest;
 import org.backend.qedu.dto.ClassSubjectResponse;
 import org.backend.qedu.dto.EnrollmentStudentIdsRequest;
-import org.backend.qedu.dto.UserDtos;
+import org.backend.qedu.dto.UserDtos.UserDto;
 import org.backend.qedu.service.QEduService;
-import org.backend.qedu.dto.ClassSubjectRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +45,7 @@ public class ClassSubjectController {
     }
 
     @GetMapping("/{id}/enrollments")
-    public List<UserDtos.UserDto> listEnrollments(@PathVariable Long id, Authentication authentication) {
+    public List<UserDto> listEnrollments(@PathVariable Long id, Authentication authentication) {
         return qEduService.listEnrolledStudents(id, qEduService.currentUser(authentication));
     }
 

@@ -5,18 +5,18 @@ import org.backend.qedu.model.Roles;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepo extends JpaRepository<User,Long> {
     Optional<User> findByUserName(String username);
+
+    long countByRoles(Roles roles);
 
     long countByClassGroups(String classGroups);
 
     List<User> findByRoles(Roles roles);
 
     List<User> findByRolesAndClassGroups(Roles roles, String classGroups);
-
-    long countByRoles(Roles roles);
 }

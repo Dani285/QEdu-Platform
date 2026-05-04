@@ -1,12 +1,9 @@
 package org.backend.qedu.config;
 import org.backend.qedu.entities.*;
+import org.backend.qedu.model.*;
 import org.backend.qedu.repo.*;
+import org.backend.qedu.canteen.*;
 import lombok.RequiredArgsConstructor;
-import org.backend.qedu.canteen.Canteen;
-import org.backend.qedu.entities.*;
-import org.backend.qedu.model.AttendanceStatus;
-import org.backend.qedu.model.Roles;
-import org.backend.qedu.repo.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +13,22 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
 
+/**
+ * Demo / teszt adatbázis egy induló rendszerhez.
+ * <p>
+ * Üres {@code users} tábla esén teljes feltöltés fut; ha már vannak felhasználók, csak az üres
+ * táblák egészülnek ki (osztály–tántárgy, teszt/projekt/anyag, üzenetek).
+ * </p>
+ * <p><b>Példa belépések (felhasználónév / jelszó):</b></p>
+ * <ul>
+ *   <li>Admin: {@code admin} / {@code admin31}</li>
+ *   <li>Tanár (I.D Programozás): {@code molnara} / {@code molnara51}</li>
+ *   <li>Tanár (II.D): {@code balogb} / {@code bence14}</li>
+ *   <li>Diák (I.D): {@code kulcsara} / {@code kulcsara21}</li>
+ *   <li>Diák (I.D): {@code kovacsj} / {@code kovacsj31}</li>
+ *   <li>Séf / étlap: {@code chefp} / {@code peterchef89}</li>
+ * </ul>
+ */
 @Configuration
 @RequiredArgsConstructor
 public class DataSeed {
@@ -34,48 +47,49 @@ public class DataSeed {
     private final PasswordEncoder passwordEncoder;
     private User admin;
 
-
-    private static final String GRADING_JSON_SAMPLE ="{\"minPointsFor5\":45,\"minPointsFor4\":38,\"minPointsFor3\":30,\"minPointsFor2\":20}";
+    private static final String GRADING_JSON_SAMPLE =
+            "{\"minPointsFor5\":45,\"minPointsFor4\":38,\"minPointsFor3\":30,\"minPointsFor2\":20}";
     @Bean
     CommandLineRunner seedData() {
         return args -> {
             if (userRepository.count() > 0) {
-                seedClassSubjects();
-                seedEnrollments();
-                ensureKovacsJStudent();
-                seedExamsProjectsMaterials();
-                seedMessageThreads();
+                seedClassSubjectsIfEmpty();
+                seedEnrollmentsIfEmpty();
+                ensureKovacsJDemoStudent();
+                seedExamsProjectsMaterialsIfEmpty();
+                seedMessageThreadsIfEmpty();
+                return;
             }
 
-
-            createUser("admin", "admin31", "Administrator", Roles.ADMIN, null);
+            admin = createUser("admin", "admin31", "Administrator", Roles.ADMIN, null);
             createUser("molnara", "molnara51", "Molnar Andras", Roles.TEACHER, "I.D");
-            createUser("molnara", "tamas12", "Bona Tamas", Roles.TEACHER, "IV.D");
-            createUser("molnara", "vigh14", "Vigh Laszlo", Roles.TEACHER, "III.D");
-            createUser("molnara", "bence14", "Balog Bence", Roles.TEACHER, "II.D");
+            createUser("bonat", "tamas12", "Bona Tamas", Roles.TEACHER, "IV.D");
+            createUser("vighl", "vigh14", "Vigh Laszlo", Roles.TEACHER, "III.D");
+            createUser("balogb", "bence14", "Balog Bence", Roles.TEACHER, "II.D");
             createUser("kulcsara", "kulcsara21", "Kulcsar Adam", Roles.STUDENT, "I.D");
+            createUser("kovacsj", "kovacsj31", "Kovacs Janos", Roles.STUDENT, "I.D");
             createUser("violak", "violak43", "Viola Krisztian", Roles.STUDENT, "IV.D");
             createUser("mazant", "mazant52", "Mazan Tamas", Roles.STUDENT, "II.D");
             createUser("bbotond", "baloghb92", "Balogh Botond", Roles.STUDENT, "III.D");
             createUser("bonaa", "bonaa22", "Bona Adam", Roles.STUDENT, "II.D");
             createUser("chefp", "peterchef89", "Nagy Peter", Roles.CHEF, null);
 
-            createTimetable(1, 1, "I.D", "Programozas", "tamas12", "Molnar Andras", "G-210", "08:50", "09:35");
-            createTimetable(1, 1, "IV.D", "Programozas", "tamas12", "Bona Tamas", "G-210", "08:00", "8:45");
-            createTimetable(4,5,"III.D","Adatstrukturak","vigh14","Vigh Laszlo","K-101","10:30","11:15");
-            createTimetable(5,6,"II.D","Programozas","bence14","Balog Bence","DP005","12:15","13:00");
+            createTimetable(1, 1, "I.D", "Programozas", "molnara", "Molnar Andras", "G-210", "08:50", "09:35");
+            createTimetable(1, 1, "IV.D", "Programozas", "bonat", "Bona Tamas", "G-210", "08:00", "08:45");
+            createTimetable(4, 5, "III.D", "Adatstrukturak", "vighl", "Vigh Laszlo", "K-101", "10:30", "11:15");
+            createTimetable(5, 6, "II.D", "Programozas", "balogb", "Balog Bence", "DP005", "12:15", "13:00");
 
-            createAttendance("kulcsara", "Kulcsar Adam", "I.D", "Programozas", AttendanceStatus.Status.PRESENT, "Molnar Andras","Molnar Andras");
-            createAttendance("violak", "Viola Krisztian", "IV.D", "Programozas", AttendanceStatus.Status.LATE, "Bona Tamas","Bona Tamas");
-            createAttendance("mazant", "Mazan Tamas", "II.D", "Adatstrukturak", AttendanceStatus.Status.ABSENT, "Balog Bence","Balog Bence");
-            createAttendance("bbotond", "Balogh Botond", "III.D", "Matematika", AttendanceStatus.Status.EXCUSED, "Vigh Laszlo","Vigh Laszlo");
-            createAttendance("bonaa", "Bona Adam", "II.D", "Adatstrukturak", AttendanceStatus.Status.PRESENT, "Balog Bence","Balog Bence");
+            createAttendance("kulcsara", "Kulcsar Adam", "I.D", "Programozas", AttendanceStatus.Status.PRESENT, "molnara", "Molnar Andras", "Molnar Andras");
+            createAttendance("violak", "Viola Krisztian", "IV.D", "Programozas", AttendanceStatus.Status.LATE, "bonat", "Bona Tamas", "Bona Tamas");
+            createAttendance("mazant", "Mazan Tamas", "II.D", "Adatstrukturak", AttendanceStatus.Status.ABSENT, "balogb", "Balog Bence", "Balog Bence");
+            createAttendance("bbotond", "Balogh Botond", "III.D", "Matematika", AttendanceStatus.Status.EXCUSED, "vighl", "Vigh Laszlo", "Vigh Laszlo");
+            createAttendance("bonaa", "Bona Adam", "II.D", "Adatstrukturak", AttendanceStatus.Status.PRESENT, "balogb", "Balog Bence", "Balog Bence");
 
             createGrade("kulcsara", "Kulcsar Adam", "I.D", "Programozas", 1, "Kituno", "molnara","Molnar Andras",LocalDateTime.now());
-            createGrade("violak", "Viola Krisztian", "IV.D", "Programozas", 2, "Dicseretes", "molnara","Molnar Andras",LocalDateTime.now());
-            createGrade("mazant", "Mazan Tamas", "II.D", "Adatstrukturak", 3, "Kozepes", "molnara","Molnar Andras",LocalDateTime.now());
-            createGrade("bbotond", "Balogh Boton", "III.D", "Matematika", 3, "Kozepes", "molnara","Molnar Andras",LocalDateTime.now());
-            createGrade("bonaa", "Bona Adam", "II.D", "Adatstrukturak", 4, "Elegseges", "molnara","Molnar Andras",LocalDateTime.now());
+            createGrade("violak", "Viola Krisztian", "IV.D", "Programozas", 2, "Dicseretes", "bonat","Bona Tamas",LocalDateTime.now());
+            createGrade("mazant", "Mazan Tamas", "II.D", "Adatstrukturak", 3, "Kozepes", "balogb","Balog Bence",LocalDateTime.now());
+            createGrade("bbotond", "Balogh Botond", "III.D", "Matematika", 3, "Kozepes", "vighl","Vigh Laszlo",LocalDateTime.now());
+            createGrade("bonaa", "Bona Adam", "II.D", "Adatstrukturak", 4, "Elegseges", "balogb","Balog Bence",LocalDateTime.now());
 
             createEvent("Helyettesites", "Helyettesites", "helyettesites tanaroknak", "mindenki",admin.getFullName());
             createEvent("Kirandulas", "Kirandulas", "egynapos kirandulas", "mindenki", admin.getFullName());
@@ -86,14 +100,14 @@ public class DataSeed {
             createCanteenMenu("mindenki","Nagy Peter","Gordonblue","Zavtos hus","Leves","Masikfele","gombocleves","Sprite","Galuska",2,"Nagy Peter");
             createCanteenMenu("mindenki","Nagy Peter","GrillSajt","GrillHal","Leves","Masikfele","husleves","Light Cola","Sajttorta",1,"Nagy Peter");
 
-            seedClassSubjects();
-            seedEnrollments();
-            seedExamsProjectsMaterials();
-            seedMessageThreads();
+            seedClassSubjectsIfEmpty();
+            seedEnrollmentsIfEmpty();
+            seedExamsProjectsMaterialsIfEmpty();
+            seedMessageThreadsIfEmpty();
         };
     }
 
-    private void seedMessageThreads() {
+    private void seedMessageThreadsIfEmpty() {
         if (messageThreadRepository.count() > 0) {
             return;
         }
@@ -120,7 +134,7 @@ public class DataSeed {
         messageThreadRepository.save(idClass);
     }
 
-    private void seedExamsProjectsMaterials() {
+    private void seedExamsProjectsMaterialsIfEmpty() {
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
@@ -304,20 +318,20 @@ public class DataSeed {
         studyMaterialRepository.save(m);
     }
 
-    private void seedClassSubjects() {
+    private void seedClassSubjectsIfEmpty() {
         if (classSubjectRepository.count() > 0) {
             return;
         }
-        saveClassSubject("i", "I.D", "prog", "Programozas", "molnara", "Molnar Andras");
-        saveClassSubject("iv", "IV.D", "prog", "Programozas", "bonat", "Bona Tamas");
-        saveClassSubject("iii", "III.D", "matek", "Matematika", "vighl", "Vigh Laszlo");
-        saveClassSubject("ii", "II.D", "adat", "Adatstrukturak", "balogb", "Balog Bence");
-
-        saveClassSubject("iiprog", "II.D", "prog", "Programozas", "balogb", "Balog Bence");
+        saveClassSubject("cid-id", "I.D", "prog", "Programozas", "molnara", "Molnar Andras");
+        saveClassSubject("cid-ivd", "IV.D", "prog", "Programozas", "bonat", "Bona Tamas");
+        saveClassSubject("cid-iiid", "III.D", "matek", "Matematika", "vighl", "Vigh Laszlo");
+        saveClassSubject("cid-iid", "II.D", "adt", "Adatstrukturak", "balogb", "Balog Bence");
+        
+        saveClassSubject("cid-iidprog", "II.D", "prog", "Programozas", "balogb", "Balog Bence");
     }
 
 
-    private void seedEnrollments() {
+    private void seedEnrollmentsIfEmpty() {
         if (studentSubjectEnrollmentRepository.count() > 0 || classSubjectRepository.count() == 0) {
             return;
         }
@@ -331,7 +345,7 @@ public class DataSeed {
         }
     }
 
-    private void ensureKovacsJStudent() {
+    private void ensureKovacsJDemoStudent() {
         User u = userRepository.findByUserName("kovacsj").orElseGet(() ->
                 createUser("kovacsj", "kovacsj31", "Kovacs Janos", Roles.STUDENT, "I.D"));
         if (!u.isEnabled()) {
@@ -352,6 +366,24 @@ public class DataSeed {
                 studentSubjectEnrollmentRepository.save(e);
             }
         }
+    }
+    
+    private void saveClassSubject(
+            String classId,
+            String className,
+            String subjectId,
+            String subjectName,
+            String teacherUsername,
+            String teacherName
+    ) {
+        ClassSubjectAssignment a = new ClassSubjectAssignment();
+        a.setClassId(classId);
+        a.setClassName(className);
+        a.setSubjectId(subjectId);
+        a.setSubjectName(subjectName);
+        a.setTeacherUsername(teacherUsername);
+        a.setTeacherName(teacherName);
+        classSubjectRepository.save(a);
     }
 
     private User createUser(String username, String password, String fullName, Roles roles, String classGroup) {
@@ -432,6 +464,7 @@ public class DataSeed {
             String classGroup,
             String subject,
             AttendanceStatus.Status status,
+            String teacherUsername,
             String teacherName,
             String createdByTeacher
     ) {
@@ -444,6 +477,7 @@ public class DataSeed {
         records.setStudentUsername(studentUsername);
         records.setStudentName(studentName);
         records.setAttendanceStatus(status);
+        records.setTeacherUsername(teacherUsername);
         records.setTeacherName(teacherName);
         records.setCreatedByTeacher(createdByTeacher);
 
@@ -461,25 +495,9 @@ public class DataSeed {
         events.setLocation("J.Selye University");
         events.setAudience(audience);
         events.setCreatedByUser(admin);
+        events.setSetRelatedTimetableId(0L);
 
         eventRepository.save(events);
-    }
-    private void saveClassSubject(
-            String classId,
-            String className,
-            String subjectId,
-            String subjectName,
-            String teacherUsername,
-            String teacherName
-    ) {
-        ClassSubjectAssignment a = new ClassSubjectAssignment();
-        a.setClassId(classId);
-        a.setClassName(className);
-        a.setSubjectId(subjectId);
-        a.setSubjectName(subjectName);
-        a.setTeacherUsername(teacherUsername);
-        a.setTeacherName(teacherName);
-        classSubjectRepository.save(a);
     }
     private void createCanteenMenu(String audience, String ChefName, String dailyMenu,String weeklyMenu, String mainMeal, String secondMeal, String soup, String drinks, String deserts, Integer amount,String createdByChef){
        Canteen canteenMenu = new Canteen();
@@ -498,6 +516,4 @@ public class DataSeed {
 
        canteenRepository.save(canteenMenu);
     }
-
-
 }

@@ -57,14 +57,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/me").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST,"api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.GET,"api/auth/me").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/canteen").permitAll()
-                        .requestMatchers(HttpMethod.POST,"api/canteen/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET,"api/statistics").permitAll()
-                        .requestMatchers(HttpMethod.POST,"api/auth/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -80,7 +74,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of(allowOrigin));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(List.of("Set-Cookie"));

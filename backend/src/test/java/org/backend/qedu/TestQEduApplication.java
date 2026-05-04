@@ -1,6 +1,5 @@
-package org.qedu;
+package org.backend.qedu;
 
-import org.backend.qedu.QEduApplication;
 import org.springframework.boot.SpringApplication;
 
 public class TestQEduApplication {

@@ -1,7 +1,7 @@
 package org.backend.qedu.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.backend.qedu.dto.UserDtos;
+import org.backend.qedu.dto.UserDtos.UserDto;
 import org.backend.qedu.service.QEduService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ public class StudentDirectoryController {
     private final QEduService qEduService;
 
     @GetMapping
-    public List<UserDtos.UserDto> list(
+    public List<UserDto> list(
             Authentication authentication,
             @RequestParam(required = false) String classId,
             @RequestParam(required = false) String subjectId
