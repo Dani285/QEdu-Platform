@@ -5,44 +5,100 @@ Main modules Backend, Timetable, Statistics, Database, Login, Session handling, 
 License:MIT
 
 AUTH
+
 POST   /api/auth/login
-POST /api/auth/register
-POST   /api/auth/refresh
+POST   /api/auth/register
 POST   /api/auth/logout
 GET    /api/auth/me
 
-USERS - ADMIN only
+USERS
+
 POST   /api/users
 GET    /api/users
 GET    /api/users/{id}
-PATCH  /api/users/{id}/disable
+PATCH  /api/users/{id}
+DELETE /api/users/{id}
+
+PROJECTS
+
+GET    /api/projects
+POST   /api/projects
+PUT    /api/projects/{id}
+DELETE /api/projects/{id}
+
+EXAMS
+
+GET    /api/exams
+POST   /api/exams
+PUT    /api/exams/{id}
+DELETE /api/exams/{id}
 
 TIMETABLE
+
 GET    /api/timetable
-GET    /api/timetable/day/MONDAY
-POST   /api/timetable           ADMIN, TEACHER
-PUT    /api/timetable/{id}      ADMIN, TEACHER
-DELETE /api/timetable/{id}      ADMIN
+POST   /api/timetable
 
 EVENTS
+
 GET    /api/events
-GET    /api/events/upcoming
-POST   /api/events              ADMIN, TEACHER
-PUT    /api/events/{id}         ADMIN, TEACHER
-DELETE /api/events/{id}         ADMIN
+POST   /api/events
+DELETE /api/events/{id}
+
+ATTENDANCE
+
+GET    /api/attendance
+POST   /api/attendance
+PUT    /api/attendance/{id}
+DELETE /api/attendance/{id}
 
 STATISTICS
-GET    /api/statistics/dashboard
+
+GET    /api/statistics
 
 CANTEEN
-GET /api/auth/canteen
-POST /api/canteen
+
+GET    /api/canteen
+POST   /api/canteen
+DELETE /api/canteen/{id}
+
+STUDENTS
+
+GET    /api/students
+
+MATERIALS
+
+GET    /api/materials
+POST   /api/materials
+PUT    /api/materials/{id}
+DELETE /api/materials/{id}
+
+CLASS SUBJECTS
+
+GET    /api/class-subjects
+POST   /api/class-subjects
+PUT    /api/class-subjects/{id}
+DELETE /api/class-subjects/{id}
+GET    /api/class-subjects/{id}/enrollments
+PUT    /api/class-subjects/{id}/enrollments
+
+GRADES
+
+GET    /api/grades
+POST   /api/grades
+PATCH  /api/grades/{id}
+DELETE /api/grades/{id}
+
+MESSAGES
+
+GET    /api/messages/threads
+POST   /api/messages/threads
+PUT    /api/messages/threads/{id}
+DELETE /api/messages/threads/{id}
 
 Example:
 http://localhost:8080/api/timetable
 http://localhost:8080/api/events
 http://localhost:8080/api/canteen
-
 
 mvn spring-boot:run
 
