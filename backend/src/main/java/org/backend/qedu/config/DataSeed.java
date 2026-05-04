@@ -34,6 +34,7 @@ public class DataSeed {
     private final PasswordEncoder passwordEncoder;
     private User admin;
 
+
     private static final String GRADING_JSON_SAMPLE ="{\"minPointsFor5\":45,\"minPointsFor4\":38,\"minPointsFor3\":30,\"minPointsFor2\":20}";
     @Bean
     CommandLineRunner seedData() {
