@@ -13,22 +13,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Objects;
 
-/**
- * Demo / teszt adatbázis egy induló rendszerhez.
- * <p>
- * Üres {@code users} tábla esén teljes feltöltés fut; ha már vannak felhasználók, csak az üres
- * táblák egészülnek ki (osztály–tántárgy, teszt/projekt/anyag, üzenetek).
- * </p>
- * <p><b>Példa belépések (felhasználónév / jelszó):</b></p>
- * <ul>
- *   <li>Admin: {@code admin} / {@code admin31}</li>
- *   <li>Tanár (I.D Programozás): {@code molnara} / {@code molnara51}</li>
- *   <li>Tanár (II.D): {@code balogb} / {@code bence14}</li>
- *   <li>Diák (I.D): {@code kulcsara} / {@code kulcsara21}</li>
- *   <li>Diák (I.D): {@code kovacsj} / {@code kovacsj31}</li>
- *   <li>Séf / étlap: {@code chefp} / {@code peterchef89}</li>
- * </ul>
- */
 @Configuration
 @RequiredArgsConstructor
 public class DataSeed {
@@ -47,8 +31,7 @@ public class DataSeed {
     private final PasswordEncoder passwordEncoder;
     private User admin;
 
-    private static final String GRADING_JSON_SAMPLE =
-            "{\"minPointsFor5\":45,\"minPointsFor4\":38,\"minPointsFor3\":30,\"minPointsFor2\":20}";
+    private static final String GRADING_JSON_SAMPLE ="{\"minPointsFor5\":45,\"minPointsFor4\":38,\"minPointsFor3\":30,\"minPointsFor2\":20}";
     @Bean
     CommandLineRunner seedData() {
         return args -> {
