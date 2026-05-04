@@ -327,9 +327,6 @@ public class QEduService {
         }
         canteenRepository.deleteById(Id);
     }
-
-    /* ========= Users (admin) ========= */
-
     public UserDto registerNewUser(RegisterRequest request) {
         if (userRepository.findByUserName(request.userName()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "UserName already exist");

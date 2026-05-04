@@ -36,11 +36,11 @@ public class DataSeed {
     CommandLineRunner seedData() {
         return args -> {
             if (userRepository.count() > 0) {
-                seedClassSubjectsIfEmpty();
-                seedEnrollmentsIfEmpty();
+                seedClassSubjects();
+                seedEnrollments();
                 ensureKovacsJDemoStudent();
-                seedExamsProjectsMaterialsIfEmpty();
-                seedMessageThreadsIfEmpty();
+                seedExamsProjectsMaterials();
+                seedMessageThreads();
                 return;
             }
 
@@ -83,14 +83,14 @@ public class DataSeed {
             createCanteenMenu("mindenki","Nagy Peter","Gordonblue","Zavtos hus","Leves","Masikfele","gombocleves","Sprite","Galuska",2,"Nagy Peter");
             createCanteenMenu("mindenki","Nagy Peter","GrillSajt","GrillHal","Leves","Masikfele","husleves","Light Cola","Sajttorta",1,"Nagy Peter");
 
-            seedClassSubjectsIfEmpty();
-            seedEnrollmentsIfEmpty();
-            seedExamsProjectsMaterialsIfEmpty();
-            seedMessageThreadsIfEmpty();
+            seedClassSubjects();
+            seedEnrollments();
+            seedExamsProjectsMaterials();
+            seedMessageThreads();
         };
     }
 
-    private void seedMessageThreadsIfEmpty() {
+    private void seedMessageThreads() {
         if (messageThreadRepository.count() > 0) {
             return;
         }
@@ -117,7 +117,7 @@ public class DataSeed {
         messageThreadRepository.save(idClass);
     }
 
-    private void seedExamsProjectsMaterialsIfEmpty() {
+    private void seedExamsProjectsMaterials() {
         LocalDate today = LocalDate.now();
         LocalDateTime now = LocalDateTime.now();
 
@@ -301,7 +301,7 @@ public class DataSeed {
         studyMaterialRepository.save(m);
     }
 
-    private void seedClassSubjectsIfEmpty() {
+    private void seedClassSubjects() {
         if (classSubjectRepository.count() > 0) {
             return;
         }
@@ -314,7 +314,7 @@ public class DataSeed {
     }
 
 
-    private void seedEnrollmentsIfEmpty() {
+    private void seedEnrollments() {
         if (studentSubjectEnrollmentRepository.count() > 0 || classSubjectRepository.count() == 0) {
             return;
         }
